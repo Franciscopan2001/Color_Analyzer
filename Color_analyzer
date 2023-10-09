@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Analyzer</title>
+    <!-- Add any additional stylesheets or scripts here -->
+</head>
+<body>
+    <h1>Color Analyzer Tool</h1>
+
+    <!-- Color Analyzer Code -->
+    <input type="file" id="imageInput" accept="image/*">
+    <canvas id="colorCanvas" width="300" height="300"></canvas>
+    <div id="dominantColors"></div>
+
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const colorCanvas = document.getElementById('colorCanvas');
+        const dominantColors = document.getElementById('dominantColors');
+
+        // Add your color analysis functionality here
+        imageInput.addEventListener('change', handleImageUpload);
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = function () {
+                        // Perform color analysis on the image
+                        const colors = getDominantColors(img);
+                        displayDominantColors(colors);
+                    };
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function getDominantColors(image) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = image.width;
+            canvas.height = image.height;
+            ctx.drawImage(image, 0, 0, image.width, image.height);
+
+            // Extract pixel data from the canvas
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const pixels = imageData.data;
+
+            // Perform color quantization (simplified)
+            const colorCounts = {};
+            for (let i = 0; i < pixels.length; i += 4) {
+                const r = pixels[i];
+                const g = pixels[i + 1];
+                const b = pixels[i + 2];
+                const color = `rgb(${r},${g},${b})`;
+
+                if (colorCounts[color]) {
+                    colorCounts[color]++;
+                } else {
+                    colorCounts[color] = 1;
+                }
+            }
+
+            // Sort colors by count
+            const sortedColors = Object.keys(colorCounts).sort(
+                (a, b) => colorCounts[b] - colorCounts[a]
+            );
+
+            // Get the dominant colors (top N)
+            const numColors = 5; // Adjust as needed
+            return sortedColors.slice(0, numColors);
+        }
+
+        function displayDominantColors(colors) {
+            dominantColors.innerHTML = `<h2>Dominant Colors:</h2>`;
+            for (const color of colors) {
+                dominantColors.innerHTML += `<div style="background-color:${color};">${color}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
